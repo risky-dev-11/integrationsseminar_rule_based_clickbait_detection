@@ -1,0 +1,114 @@
+:root {
+    --primary-color: #FFF;
+    --accent-color: #1689FE;
+    --border-color: #DFE0E0;
+    --font-color: #000;
+}
+
+* {
+    font-family: 'Roboto', sans-serif;
+}
+
+header h1 {
+    color: var(--font-color);
+    font-size: 2rem;
+    width: 100%;
+    text-align: center;
+}
+
+
+body {
+    min-width: 390px;
+    min-height: 650px;
+    background-color: var(--primary-color);
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 5rem;
+}
+
+.chat_window {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: end;
+    border: 1px solid var(--border-color);
+    padding: 2rem;
+    border-radius: 1rem;
+    gap: 1.5rem;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 40rem;
+}
+
+.chat {
+    height: 50vh;
+    width: 100%;
+    max-width: 70rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    overflow-y: auto;
+}
+
+.chat_input_row {
+    display: flex;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.chat_input {
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    color: var(--font-color);
+    border-radius: 0.5rem;
+    width: 100%;
+}
+
+#chat_send {
+    background-color: transparent;
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+#chat_send svg {
+    width: 2rem;
+    height: 2rem;
+}
+
+#Icon-Set-Filled {
+    fill: var(--accent-color);
+}
+
+
+/* Chat message styling with iMessage theme */
+.chat_message {
+    max-width: 80%;
+    padding: 0.5rem 1rem;
+    border-radius: 1rem;
+    word-wrap: break-word;
+}
+
+.chat_message.bot {
+    align-self: flex-start;
+    background-color: #e9e9eb;
+    color: #000;
+    border-bottom-left-radius: 5px;
+    margin-right: auto;
+}
+
+.chat_message.user {
+    align-self: flex-end;
+    background-color: #1982fc;
+    color: white;
+    border-bottom-right-radius: 5px;
+    margin-left: auto;
+}
+
+.chat_message_text {
+    line-height: 1.4;
+    font-size: 16px;
+}
