@@ -34,13 +34,55 @@ function appendMessage(text, sender) {
 
 // Function to process user message and respond
 function processMessage(message) {
-    // Simulate a bot response (replace with actual processing logic)
-    setTimeout(() => {
-        // Example simple response - in a real app, this would be replaced with actual logic
-        let botResponse = "Ich analysiere deinen Text...";
+    // Get the selected model
+    const modelSelect = document.getElementById('model_select');
+    const selectedModel = modelSelect.value;
+    
+    // Show loading message
+    appendMessage("Ich analysiere deinen Text...", 'bot');
+    
+    // Send API request to the backend with the selected model
+    fetch('/predict', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `message=${encodeURIComponent(message)}&model=${encodeURIComponent(selectedModel)}`
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Netzwerk-Antwort war nicht ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Remove loading message
+        const chatElement = document.getElementById('chat');
+        const loadingMessage = chatElement.lastChild;
+        chatElement.removeChild(loadingMessage);
         
-        appendMessage(botResponse, 'bot');
-    }, 600); // Small delay to simulate processing
+        // Create response based on prediction
+        if (data.error) {
+            appendMessage(`Fehler bei der Analyse: ${data.error}`, 'bot');
+        } else {
+            const probability = (data.probability * 100).toFixed(1);
+            let responseText = '';
+            
+            const modelName = data.model === 'neural' ? 'Neuronales Netz' : 'Regelbasierter Klassifikator';
+            
+            if (data.is_clickbait) {
+                responseText = `${modelName}: Dein Text "${data.headline}" ist mit ${probability}% Wahrscheinlichkeit Clickbait!`;
+            } else {
+                responseText = `${modelName}: Dein Text "${data.headline}" ist wahrscheinlich kein Clickbait (${probability}% Clickbait-Wahrscheinlichkeit).`;
+            }
+            
+            appendMessage(responseText, 'bot');
+        }
+    })
+    .catch(error => {
+        console.error('Fehler bei der Anfrage:', error);
+        appendMessage('Es ist ein Fehler aufgetreten. Bitte versuche es später noch einmal.', 'bot');
+    });
 }
 
 // Event listener for Enter key in the input field
