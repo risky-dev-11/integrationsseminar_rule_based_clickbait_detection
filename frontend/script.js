@@ -73,7 +73,7 @@ function processMessage(message) {
             if (data.is_clickbait) {
                 responseText = `${modelName}: Dein Text "${data.headline}" ist mit ${probability}% Wahrscheinlichkeit Clickbait!`;
             } else {
-                responseText = `${modelName}: Dein Text "${data.headline}" ist wahrscheinlich kein Clickbait (${probability}% Clickbait-Wahrscheinlichkeit).`;
+                responseText = `${modelName}: Dein Text "${data.headline}" ist mit ${probability}% Wahrscheinlichkeit kein Clickbait!`;
             }
             
             appendMessage(responseText, 'bot');
