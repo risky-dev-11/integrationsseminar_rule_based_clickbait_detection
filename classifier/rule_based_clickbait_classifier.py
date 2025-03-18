@@ -356,30 +356,68 @@ tree_rules = export_text(best_clf, feature_names=list(features.columns), max_dep
 print(tree_rules)
 
 # %%
-# Refining the output of the decision tree into a function: removed redundant checks and simplified the structure
-def rule_based_clickbait_classifier(NumberStart, PRP, NoNumber, DT, NN):
-    # 'DT': 'determiner'
-    # 'NN': 'noun, singular'
-    # 'PRP': 'personal pronoun'
-    # NoNumber is not used in the decision tree (only redundant checks)
-    if not PRP:  # personal pronoun == False
-        if not NumberStart:  # == False
-            if not DT:  # determiner == False
+def rule_based_clickbait_classifier(NumberStart, PRP, NoNumber, DT, NN, cardinal_digit):
+    """
+    Classifies a text snippet as clickbait (1) or non-clickbait (0) based on a decision tree.
+    
+    Parameters (False means ≤ 0.50, True means > 0.50):
+        PRP:  Boolean if headline contains a personal pronoun.
+        NumberStart: Boolean for whether the text starts with a number.
+        DT: Boolean if headline contains a determiner.
+        NN: Boolean if headline contains a singular noun.
+        NoNumber: Boolean flag
+        cardinal_digit: Boolean if headline contains a cardinal digit.
+    
+    Returns:
+        int: 0 (non-clickbait) or 1 (clickbait) based on the decision rules.
+    """
+    # Branch: personal pronoun <= 0.50
+    if not PRP:
+        if not NumberStart:
+            # When there is no determiner, we always output 0.
+            if not DT:
                 return 0
-            else:  # determiner == True
-                if not NN:  # noun, singular == False
+            else:  # DT is True
+                # With a determiner, check the noun (singular) condition.
+                if not NN:
                     return 1
-                else:  # noun, singular == True
+                else:
                     return 0
-        else:  # numberStart == True
+        else:  # NumberStart is True
             return 1
-    else:  # personal pronoun == True
-        return 1
+
+    # Branch: personal pronoun > 0.50
+    else:
+        if not NN:
+            # If noun is not singular, always return 1 regardless of the rest.
+            return 1
+        else:  # NN is True
+            if NumberStart:
+                # When a number is at the start and PRP is True with NN True, we return 1.
+                return 1
+            else:
+                # Here NumberStart is False.
+                if DT:
+                    # With a determiner present, always return 1.
+                    return 1
+                else:
+                    # DT is False, so we check the NoNumber and cardinal_digit branch.
+                    if not NoNumber:
+                        # If NoNumber is False:
+                        #   if cardinal_digit is False (≤ 0.50) then return 0,
+                        #   else (cardinal_digit > 0.50) return 1.
+                        if not cardinal_digit:
+                            return 0
+                        else:
+                            return 1
+                    else:
+                        # If NoNumber is True, return 1 regardless of cardinal_digit.
+                        return 1
 
 # %%
 from sklearn.metrics import precision_score
 # Apply the classify_headline function to each row in the dataset
-predictions = dataset.apply(lambda row: rule_based_clickbait_classifier(row['NumberStart'], row['personal pronoun'], row['NoNumber'], row['determiner'], row['noun, singular']), axis=1)
+predictions = dataset.apply(lambda row: rule_based_clickbait_classifier(row['NumberStart'], row['personal pronoun'], row['NoNumber'], row['determiner'], row['noun, singular'], row['cardinal digit']), axis=1)
 # Calculate the precision of the predictions
 precision = precision_score(dataset['clickbait'], predictions)
 print(f'Precision: {precision:.2f}')

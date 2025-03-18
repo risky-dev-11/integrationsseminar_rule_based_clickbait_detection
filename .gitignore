@@ -1,3 +1,6 @@
 .venv
 model
 .DS_Store
+backend/__pycache__/server.cpython-39.pyc
+classifier/__pycache__/neural_classifier_clickbait_detection.cpython-39.pyc
+classifier/__pycache__/rule_based_clickbait_classifier.cpython-39.pyc
