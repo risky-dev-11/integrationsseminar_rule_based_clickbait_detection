@@ -65,6 +65,10 @@ function processMessage(message) {
         if (data.error) {
             appendMessage(`Fehler bei der Analyse: ${data.error}`, 'bot');
         } else {
+            if (data.model === "llm") {
+                appendMessage(`${data.answer}`, 'bot');
+                return;
+            }
             const probability = (data.probability * 100).toFixed(1);
             let responseText = '';
             

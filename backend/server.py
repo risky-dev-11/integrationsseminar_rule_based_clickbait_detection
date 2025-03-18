@@ -16,6 +16,9 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 import pickle
+import json
+import requests
+from dotenv import load_dotenv
 import importlib.util
 
 # Pfad-Konfiguration
@@ -359,6 +362,53 @@ def predict_clickbait_rule_based(headline):
         print(f"Fehler bei der regelbasierten Vorhersage: {str(e)}")
         return {"error": str(e)}
 
+def predict_clickbait_llm(headline):
+    """Vorhersage ob eine Überschrift Clickbait ist mit LLM."""
+
+    load_dotenv()
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        # Try to load from .env file directly in case it wasn't loaded
+        env_path = BASE_DIR / '.env'
+        if env_path.exists():
+            load_dotenv(env_path)
+            api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        return {"error": "GROQ_API_KEY environment variable not set"}
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}"
+    }
+
+    prompt = f"Ist der folgende Titel Clickbait? Gebe die Wahrscheinlichkeit an, dass es Clickbait ist. Antworte kurz und präzise.\n\nTitel: {headline}\nAntwort:"
+    
+    payload = {
+        "model": "llama-3.3-70b-versatile",
+        "messages": [{
+            "role": "user", 
+            "content": prompt
+        }]
+    }
+
+    try:
+        response = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers=headers,
+            json=payload
+        )
+        result = response.json()
+        answer = result["choices"][0]["message"]["content"].strip()
+        
+        return {
+            "answer": answer,
+            "model": "llm"
+        }
+
+    except Exception as e:
+        print(f"Error in LLM prediction: {str(e)}")
+        return {"error": str(e)}
+
 # Hauptseite - leitet zum Frontend weiter
 @app.get("/", response_class=HTMLResponse)
 async def root():
@@ -380,8 +430,13 @@ async def root():
 async def predict(message: str = Form(...), model: str = Form("neural")):
     if model == "neural":
         result = predict_clickbait_neural(message)
-    else:
+    elif model == "rule_based":
         result = predict_clickbait_rule_based(message)
+    elif model == "llm":
+        result = predict_clickbait_llm(message)
+    else:
+        return JSONResponse(content={"error": "Unbekanntes Modell"})
+
     return JSONResponse(content=result)
 
 # Server starten, wenn direkt ausgeführt
